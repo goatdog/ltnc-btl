@@ -1,4 +1,4 @@
-/*#include<bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
 int a[9][9];
 bool check(int a[][9],int x,int y,int k){
@@ -37,12 +37,12 @@ void solveSudoku(int a[][9],int x,int y){
     }else{
         solveSudoku(a,x,y+1);
     }
-}*/
-/*int main(){
+}
+int main(){
     for(int i=0;i<9;i++){
         for(int j=0;j<9;j++){
             cin>>a[i][j];
         }
     }
     solveSudoku(a,0,0);
-}*/
+}
