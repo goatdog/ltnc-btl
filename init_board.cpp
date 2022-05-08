@@ -2,7 +2,7 @@
 #include "init_board.h"
 using namespace std;
 int a[9][9],row[9],board[9][9],realBoard[9][9],pick,cnt;
-int hidden[]={3,4,5,6};
+int hidden[]={3,4,5,6,7};
 int random(int i){
     return rand()%i;
 }
@@ -13,6 +13,7 @@ void printBoard(int a[][9]){
         }
         cout<<endl;
     }
+    return;
 }
 void fillEmptyDiagonalBox(int ind){
     int start=ind*3;
@@ -23,6 +24,7 @@ void fillEmptyDiagonalBox(int ind){
             a[start+i][start+j]=row[i*3+j];
         }
     }
+    return;
 }
 bool check(int a[][9],int x,int y,int k){
     for(int i=0;i<9;i++){
@@ -35,6 +37,7 @@ bool check(int a[][9],int x,int y,int k){
             if(a[i][j]==k) return false;
         }
     }
+    return true;
 }
 void solveSudoku(int a[][9],int x,int y){
     if(pick>5) return;
@@ -103,15 +106,14 @@ void createPuzzle(){
         row[i]=i;
     }
     int tmp=0,zeroamount=0;
-    while(zeroamount<25){
+    while(zeroamount<45){
         zeroamount=0;
         for(int i=0;i<9;i++){
             random_shuffle(row,row+9,random);
-            if(i%3==0) random_shuffle(hidden,hidden+4,random);
+            if(i%3==0) random_shuffle(hidden,hidden+5,random);
             for(int j=0;j<9;j++){
                 realBoard[i][j]=board[i][j];
             }
-            cout<<hidden[tmp]<<endl;
             for(int j=0;j<hidden[tmp];j++){
                 realBoard[i][row[j]]=0;
             }
@@ -134,8 +136,8 @@ void createPuzzle(){
                 if(realBoard[i][j]==0) zeroamount+=1;
             }
         }
-        cout<<zeroamount<<endl;
     }
+    return;
 }
 int **initBoard(){
     srand(time(0));

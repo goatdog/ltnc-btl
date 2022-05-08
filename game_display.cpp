@@ -6,7 +6,11 @@
 using namespace std;
 string number[]={" ","1","2","3","4","5","6","7","8","9"};
 int checker[9][9];
-bool canFill[9][9];
+bool canFill[9][9],stop=false;
+const int totaltime=600;
+const int SCREEN_WIDTH=800;
+const int SCREEN_HEIGHT=600;
+const string WINDOW_TITLE="Sudoku - SDL";
 void logSDLError(std::ostream& os,
                  const std::string &msg, bool fatal)
 {
@@ -16,9 +20,6 @@ void logSDLError(std::ostream& os,
         exit(1);
     }
 }
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
-const string WINDOW_TITLE = "Sudoku - SDL";
 
 void initSDL(SDL_Window* &window, SDL_Renderer* &renderer)
 {
@@ -44,14 +45,16 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer)
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-void quitSDL(SDL_Window* window, SDL_Renderer* renderer)
+void quitSDL(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* surface, SDL_Texture* texture)
 {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+	SDL_FreeSurface(surface);
+	SDL_DestroyTexture(texture);
 	SDL_Quit();
 }
 
-void waitUntilKeyPressed()
+/*void waitUntilKeyPressed()
 {
     SDL_Event e;
     while (true) {
@@ -60,10 +63,9 @@ void waitUntilKeyPressed()
             return;
         SDL_Delay(100);
     }
-}
+}*/
 void DrawNumber(SDL_Renderer* renderer,int X,int Y,string num,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,SDL_Color fg){
     font=TTF_OpenFont("font-times-new-roman/times new roman.ttf",20);
-    //SDL_Color fg={0,0,0};
     surface=TTF_RenderText_Solid(font,num.c_str(),fg);
     texture=SDL_CreateTextureFromSurface(renderer,surface);
     SDL_FreeSurface(surface);
@@ -113,7 +115,6 @@ struct Grid{
                 SDL_RenderDrawLine(renderer,x+(j+1)*Size,y+i*Size,x+(j+1)*Size,y+(i+1)*Size);
                 SDL_RenderDrawLine(renderer,x+(j+1)*Size,y+(i+1)*Size,x+j*Size,y+(i+1)*Size);
                 SDL_RenderDrawLine(renderer,x+j*Size,y+(i+1)*Size,x+j*Size,y+i*Size);
-
                 int tmp=checker[i][j];
                 checker[i][j]=0;
                 if(check(checker,i,j,tmp)){
@@ -122,9 +123,12 @@ struct Grid{
                 }
                 else fg={255,0,0};
                 checker[i][j]=tmp;
-                DrawNumber(renderer,x+j*Size,y+i*Size,number[tmp],font,surface,texture,fg);
+                DrawNumber(renderer,x+j*Size,y+i*Size,number[checker[i][j]],font,surface,texture,fg);
             }
         }
+    }
+    bool inside(int xi,int yi){
+        return (xi>=x && xi<=x+9*Size && yi>=y && yi<=y+9*Size);
     }
 };
 struct Box{
@@ -134,11 +138,6 @@ struct Box{
     int StepX=1;
     int StepY=1;
     void render(SDL_Renderer* renderer,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,int checker[][9]){
-        SDL_Rect filled_rect;
-        filled_rect.x = x;
-        filled_rect.y = y;
-        filled_rect.w = Size;
-        filled_rect.h = Size;
         SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0); // blue
         SDL_RenderDrawLine(renderer,x,y,x+Size,y);
         SDL_RenderDrawLine(renderer,x+Size,y,x+Size,y+Size);
@@ -161,6 +160,21 @@ struct Box{
         return (x1<=x && x<=x2 && y1<=y && y<=y2);
     }
 };
+void Clock(SDL_Renderer* renderer,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,SDL_Color fg,int timeLeft){
+    int minute=timeLeft/60;
+    int second=timeLeft%60;
+    string minu,sec;
+    fg={0,0,0};
+    char d1=(char)(minute/10+48);
+    char d2=(char)(minute%10+48);
+    minu=minu+d1+d2;
+    DrawNumber(renderer,480,10,minu,font,surface,texture,fg);
+    d1=(char)(second/10+48);
+    d2=(char)(second%10+48);
+    sec=sec+d1+d2;
+    DrawNumber(renderer,500,10,":",font,surface,texture,fg);
+    DrawNumber(renderer,520,10,sec,font,surface,texture,fg);
+}
 int main(int argc, char* argv[])
 {
     int **numboard=new int*[9];
@@ -174,6 +188,10 @@ int main(int argc, char* argv[])
             if(checker[i][j]==0) canFill[i][j]=true;
         }
     }
+    for(int i=0;i<9;i++){
+        delete []numboard[i];
+    }
+    delete []numboard;
     TTF_Font *font=NULL;
     SDL_Surface *surface=NULL;
     SDL_Texture *texture=NULL;
@@ -183,89 +201,101 @@ int main(int argc, char* argv[])
     Grid grid;
     grid.x=40;
     grid.y=100;
-    /*SDL_SetRenderDrawColor(renderer,255,255,255,255);
-    SDL_RenderClear(renderer);
-    grid.render(renderer,font,surface,texture,numboard);
-    SDL_RenderPresent(renderer);*/
     Box box;
     box.x=40;
     box.y=100;
     SDL_Event e;
-    while(box.inside(0,0,SCREEN_WIDTH,SCREEN_HEIGHT)){
-        SDL_SetRenderDrawColor(renderer,255,255,255,255);
-        SDL_RenderClear(renderer);
-        grid.render(renderer,font,surface,texture,checker);
-    //SDL_RenderPresent(renderer);
-        //SDL_RenderClear(renderer);
-        box.render(renderer,font,surface,texture,checker);
-        SDL_RenderPresent(renderer);
-        SDL_Delay(10);
-        if(SDL_WaitEvent(&e)==0) continue;
-        if(e.type==SDL_QUIT) break;
-        if(e.type==SDL_KEYDOWN){
-            switch(e.key.keysym.sym){
-                case SDLK_ESCAPE: break;
-                case SDLK_LEFT: box.moveLeft(grid.x);
-                    break;
-                case SDLK_RIGHT: box.moveRight(grid.x+8*40);
-                    break;
-                case SDLK_DOWN: box.moveDown(grid.y+8*40);
-                    break;
-                case SDLK_UP: box.moveUp(grid.y);
-                    break;
-                case SDLK_1:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=1;}
-                    break;
-                case SDLK_2:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=2;}
-                    break;
-                case SDLK_3:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=3;}
-                    break;
-                case SDLK_4:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=4;}
-                    break;
-                case SDLK_5:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=5;}
-                    break;
-                case SDLK_6:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=6;}
-                    break;
-                case SDLK_7:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=7;}
-                    break;
-                case SDLK_8:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=8;}
-                    break;
-                case SDLK_9:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=9;}
-                    break;
-                case SDLK_BACKSPACE:
-                    {int r=(box.y-grid.y)/box.Size;
-                    int c=(box.x-grid.x)/box.Size;
-                    if(canFill[r][c]) checker[r][c]=0;}
-                    break;
-                default: break;
+    while(!stop){
+            SDL_SetRenderDrawColor(renderer,255,255,255,255);
+            SDL_RenderClear(renderer);
+            grid.render(renderer,font,surface,texture,checker);
+            box.render(renderer,font,surface,texture,checker);
+            SDL_Color fg={0,0,0};
+            Uint32 timer=totaltime-SDL_GetTicks()/1000;
+            Clock(renderer,font,surface,texture,fg,timer);
+            if(timer==0){
+                stop=true;
             }
-        }
+            SDL_RenderPresent(renderer);
+            SDL_Delay(1000);
+            while(SDL_PollEvent(&e)!=0){
+                if(e.type==SDL_QUIT){
+                    stop=true;
+                    break;
+                }
+                //}
+                if(e.type==SDL_KEYDOWN){
+                switch(e.key.keysym.sym){
+                    case SDLK_ESCAPE: stop=true;
+                        break;
+                    case SDLK_LEFT: box.moveLeft(grid.x);
+                        break;
+                    case SDLK_RIGHT: box.moveRight(grid.x+8*40);
+                        break;
+                    case SDLK_DOWN: box.moveDown(grid.y+8*40);
+                        break;
+                    case SDLK_UP: box.moveUp(grid.y);
+                        break;
+                    case SDLK_1:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=1;}
+                        break;
+                    case SDLK_2:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=2;}
+                        break;
+                    case SDLK_3:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=3;}
+                        break;
+                    case SDLK_4:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=4;}
+                        break;
+                    case SDLK_5:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=5;}
+                        break;
+                    case SDLK_6:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=6;}
+                        break;
+                    case SDLK_7:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=7;}
+                        break;
+                    case SDLK_8:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=8;}
+                        break;
+                    case SDLK_9:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=9;}
+                        break;
+                    case SDLK_BACKSPACE:
+                        {int r=(box.y-grid.y)/box.Size;
+                        int c=(box.x-grid.x)/box.Size;
+                        if(canFill[r][c]) checker[r][c]=0;}
+                        break;
+                    default: break;
+                }
+                }
+                if(e.type==SDL_MOUSEBUTTONDOWN){
+                    if(e.button.button==SDL_BUTTON_LEFT&&grid.inside(e.motion.x,e.motion.y)){
+                        box.x=grid.x+((e.motion.x-grid.x)/box.Size)*box.Size;
+                        box.y=grid.y+((e.motion.y-grid.y)/box.Size)*box.Size;
+                    }
+                }
+            }
         /*if(e.type==SDL_MOUSEBUTTONDOWN){
             switch(e.button.buttonsym.sym){
                 case SDL_MOUSEBUTTONDOWN:
@@ -273,8 +303,10 @@ int main(int argc, char* argv[])
             }
         }*/
     }
-    waitUntilKeyPressed();
-    quitSDL(window, renderer);
+    //waitUntilKeyPressed();
     TTF_CloseFont(font);
+    TTF_Quit();
+    quitSDL(window, renderer, surface, texture);
     return 0;
+    //waitUntilKeyPressed();
 }
