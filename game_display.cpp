@@ -6,7 +6,7 @@
 using namespace std;
 string number[]={" ","1","2","3","4","5","6","7","8","9"};
 int checker[9][9];
-bool canFill[9][9],stop=false;
+bool canFill[9][9],stop=false,isBox[9][9],arrowkey;
 const int totaltime=600;
 const int SCREEN_WIDTH=800;
 const int SCREEN_HEIGHT=600;
@@ -45,12 +45,9 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer)
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-void quitSDL(SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* surface, SDL_Texture* texture)
+void cleanup()
 {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_FreeSurface(surface);
-	SDL_DestroyTexture(texture);
+	TTF_Quit();
 	SDL_Quit();
 }
 
@@ -108,6 +105,10 @@ struct Grid{
                     SDL_RenderFillRect(renderer,&fillable);
                 }else{
                     SDL_SetRenderDrawColor(renderer,255,255,255,255);
+                    SDL_RenderFillRect(renderer,&fillable);
+                }
+                if(isBox[i][j]){
+                    SDL_SetRenderDrawColor(renderer, 0, 250, 154, 0); //medium spring green
                     SDL_RenderFillRect(renderer,&fillable);
                 }
                 SDL_SetRenderDrawColor(renderer,0,0,0,0);
@@ -175,6 +176,16 @@ void Clock(SDL_Renderer* renderer,TTF_Font *font,SDL_Surface *surface,SDL_Textur
     DrawNumber(renderer,500,10,":",font,surface,texture,fg);
     DrawNumber(renderer,520,10,sec,font,surface,texture,fg);
 }
+void clearOldBox(int r,int c){
+    if(c<8&&isBox[r][c+1]) isBox[r][c+1]=false;
+    if(c>0&&isBox[r][c-1]) isBox[r][c-1]=false;
+    if(r<8&&isBox[r+1][c]) isBox[r+1][c]=false;
+    if(r>0&&isBox[r-1][c]) isBox[r-1][c]=false;
+    if(r>0&&c>0&&isBox[r-1][c-1]) isBox[r-1][c-1]=false;
+    if(r<8&&c>0&&isBox[r+1][c-1]) isBox[r+1][c-1]=false;
+    if(r>0&&c<8&&isBox[r-1][c+1]) isBox[r-1][c+1]=false;
+    if(r<8&&c<8&&isBox[r+1][c+1]) isBox[r+1][c+1]=false;
+}
 int main(int argc, char* argv[])
 {
     int **numboard=new int*[9];
@@ -208,6 +219,9 @@ int main(int argc, char* argv[])
     while(!stop){
             SDL_SetRenderDrawColor(renderer,255,255,255,255);
             SDL_RenderClear(renderer);
+            int r=(box.y-grid.y)/box.Size;
+            int c=(box.x-grid.x)/box.Size;
+            isBox[r][c]=true;
             grid.render(renderer,font,surface,texture,checker);
             box.render(renderer,font,surface,texture,checker);
             SDL_Color fg={0,0,0};
@@ -217,7 +231,7 @@ int main(int argc, char* argv[])
                 stop=true;
             }
             SDL_RenderPresent(renderer);
-            SDL_Delay(1000);
+            SDL_Delay(500);
             while(SDL_PollEvent(&e)!=0){
                 if(e.type==SDL_QUIT){
                     stop=true;
@@ -228,18 +242,32 @@ int main(int argc, char* argv[])
                 switch(e.key.keysym.sym){
                     case SDLK_ESCAPE: stop=true;
                         break;
-                    case SDLK_LEFT: box.moveLeft(grid.x);
+                    case SDLK_LEFT:
+                        {box.moveLeft(grid.x);
+                        r=(box.y-grid.y)/box.Size;
+                        c=(box.x-grid.x)/box.Size;
+                        clearOldBox(r,c);}
                         break;
-                    case SDLK_RIGHT: box.moveRight(grid.x+8*40);
+                    case SDLK_RIGHT:
+                        {box.moveRight(grid.x+8*40);
+                        r=(box.y-grid.y)/box.Size;
+                        c=(box.x-grid.x)/box.Size;
+                        clearOldBox(r,c);}
                         break;
-                    case SDLK_DOWN: box.moveDown(grid.y+8*40);
+                    case SDLK_DOWN:
+                        {box.moveDown(grid.y+8*40);
+                        r=(box.y-grid.y)/box.Size;
+                        c=(box.x-grid.x)/box.Size;
+                        clearOldBox(r,c);}
                         break;
-                    case SDLK_UP: box.moveUp(grid.y);
+                    case SDLK_UP:
+                        {box.moveUp(grid.y);
+                        r=(box.y-grid.y)/box.Size;
+                        c=(box.x-grid.x)/box.Size;
+                        clearOldBox(r,c);}
                         break;
                     case SDLK_1:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=1;}
+                        {if(canFill[r][c]) checker[r][c]=1;}
                         break;
                     case SDLK_2:
                         {int r=(box.y-grid.y)/box.Size;
@@ -247,50 +275,35 @@ int main(int argc, char* argv[])
                         if(canFill[r][c]) checker[r][c]=2;}
                         break;
                     case SDLK_3:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=3;}
+                        {if(canFill[r][c]) checker[r][c]=3;}
                         break;
                     case SDLK_4:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=4;}
+                        {if(canFill[r][c]) checker[r][c]=4;}
                         break;
                     case SDLK_5:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=5;}
+                        {if(canFill[r][c]) checker[r][c]=5;}
                         break;
                     case SDLK_6:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=6;}
+                        {if(canFill[r][c]) checker[r][c]=6;}
                         break;
                     case SDLK_7:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=7;}
+                        {if(canFill[r][c]) checker[r][c]=7;}
                         break;
                     case SDLK_8:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=8;}
+                        {if(canFill[r][c]) checker[r][c]=8;}
                         break;
                     case SDLK_9:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=9;}
+                        {if(canFill[r][c]) checker[r][c]=9;}
                         break;
                     case SDLK_BACKSPACE:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=0;}
+                        {if(canFill[r][c]) checker[r][c]=0;}
                         break;
                     default: break;
                 }
                 }
                 if(e.type==SDL_MOUSEBUTTONDOWN){
                     if(e.button.button==SDL_BUTTON_LEFT&&grid.inside(e.motion.x,e.motion.y)){
+                        isBox[r][c]=false;
                         box.x=grid.x+((e.motion.x-grid.x)/box.Size)*box.Size;
                         box.y=grid.y+((e.motion.y-grid.y)/box.Size)*box.Size;
                     }
@@ -299,14 +312,16 @@ int main(int argc, char* argv[])
         /*if(e.type==SDL_MOUSEBUTTONDOWN){
             switch(e.button.buttonsym.sym){
                 case SDL_MOUSEBUTTONDOWN:
-
             }
         }*/
     }
     //waitUntilKeyPressed();
     TTF_CloseFont(font);
-    TTF_Quit();
-    quitSDL(window, renderer, surface, texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+    atexit(cleanup);
     return 0;
     //waitUntilKeyPressed();
 }
