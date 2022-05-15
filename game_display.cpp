@@ -5,12 +5,30 @@
 #include "init_board.h"
 using namespace std;
 string number[]={" ","1","2","3","4","5","6","7","8","9"};
-int checker[9][9];
-bool canFill[9][9],stop=false,isBox[9][9],arrowkey;
+int checker[9][9],verdict[9][9];
+bool canFill[9][9],stop=false,isBox[9][9],Hinted[9][9],arrowkey;
 const int totaltime=600;
 const int SCREEN_WIDTH=800;
 const int SCREEN_HEIGHT=600;
 const string WINDOW_TITLE="Sudoku - SDL";
+void gettable(int a[][9], bool b){
+    int **numboard=new int*[9];
+    for(int i=0;i<9;i++){
+        numboard[i]=new int[9];
+    }
+    if(b==false) numboard=initBoard();
+    else numboard=answer();
+    for(int i=0;i<9;i++){
+        for(int j=0;j<9;j++){
+            a[i][j]=numboard[i][j];
+            if(a[i][j]==0) canFill[i][j]=true;
+        }
+    }
+    for(int i=0;i<9;i++){
+        delete []numboard[i];
+    }
+    delete []numboard;
+}
 void logSDLError(std::ostream& os,
                  const std::string &msg, bool fatal)
 {
@@ -50,19 +68,8 @@ void cleanup()
 	TTF_Quit();
 	SDL_Quit();
 }
-
-/*void waitUntilKeyPressed()
-{
-    SDL_Event e;
-    while (true) {
-        if ( SDL_WaitEvent(&e) != 0 &&
-             (e.type == SDL_KEYDOWN || e.type == SDL_QUIT) )
-            return;
-        SDL_Delay(100);
-    }
-}*/
-void DrawNumber(SDL_Renderer* renderer,int X,int Y,string num,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,SDL_Color fg){
-    font=TTF_OpenFont("font-times-new-roman/times new roman.ttf",20);
+void DrawText(SDL_Renderer* renderer,int X,int Y,string num,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,SDL_Color fg, int fontsize){
+    font=TTF_OpenFont("font-times-new-roman/times new roman.ttf",fontsize);
     surface=TTF_RenderText_Solid(font,num.c_str(),fg);
     texture=SDL_CreateTextureFromSurface(renderer,surface);
     SDL_FreeSurface(surface);
@@ -86,13 +93,6 @@ struct Grid{
     int StepX=5;
     int StepY=5;
     void render(SDL_Renderer* renderer,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,int checker[][9]){
-        /*SDL_Rect filled_rect;
-        filled_rect.x = x;
-        filled_rect.y = y;
-        filled_rect.w = Size;
-        filled_rect.h = Size;
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // green
-        SDL_RenderFillRect(renderer, &filled_rect);*/
         SDL_Color fg;
         for(int i=0;i<9;i++){
             for(int j=0;j<9;j++){
@@ -124,7 +124,7 @@ struct Grid{
                 }
                 else fg={255,0,0};
                 checker[i][j]=tmp;
-                DrawNumber(renderer,x+j*Size,y+i*Size,number[checker[i][j]],font,surface,texture,fg);
+                DrawText(renderer,x+j*Size,y+i*Size,number[checker[i][j]],font,surface,texture,fg,20);
             }
         }
     }
@@ -135,30 +135,30 @@ struct Grid{
 struct Box{
     int x;
     int y;
-    int Size=40;
+    int SizeX;
+    int SizeY;
     int StepX=1;
     int StepY=1;
-    void render(SDL_Renderer* renderer,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,int checker[][9]){
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0); // blue
-        SDL_RenderDrawLine(renderer,x,y,x+Size,y);
-        SDL_RenderDrawLine(renderer,x+Size,y,x+Size,y+Size);
-        SDL_RenderDrawLine(renderer,x+Size,y+Size,x,y+Size);
-        SDL_RenderDrawLine(renderer,x,y+Size,x,y);
+    void render(SDL_Renderer* renderer){
+        SDL_RenderDrawLine(renderer,x,y,x+SizeX,y);
+        SDL_RenderDrawLine(renderer,x+SizeX,y,x+SizeX,y+SizeY);
+        SDL_RenderDrawLine(renderer,x+SizeX,y+SizeY,x,y+SizeY);
+        SDL_RenderDrawLine(renderer,x,y+SizeY,x,y);
     }
     void moveLeft(int x1){
-        if(x>x1) x-=StepX*Size;
+        if(x>x1) x-=StepX*SizeX;
     }
     void moveRight(int x2){
-        if(x<x2) x+=StepX*Size;
+        if(x<x2) x+=StepX*SizeX;
     }
     void moveDown(int y2){
-        if(y<y2) y+=StepY*Size;
+        if(y<y2) y+=StepY*SizeY;
     }
     void moveUp(int y1){
-        if(y>y1) y-=StepY*Size;
+        if(y>y1) y-=StepY*SizeY;
     }
-    bool inside(int x1,int y1,int x2,int y2){
-        return (x1<=x && x<=x2 && y1<=y && y<=y2);
+    bool inside(int xi,int yi){
+        return (xi>=x && xi<=x+SizeX && yi>=y && yi<=y+SizeY);
     }
 };
 void Clock(SDL_Renderer* renderer,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,SDL_Color fg,int timeLeft){
@@ -169,12 +169,12 @@ void Clock(SDL_Renderer* renderer,TTF_Font *font,SDL_Surface *surface,SDL_Textur
     char d1=(char)(minute/10+48);
     char d2=(char)(minute%10+48);
     minu=minu+d1+d2;
-    DrawNumber(renderer,480,10,minu,font,surface,texture,fg);
+    DrawText(renderer,480,10,minu,font,surface,texture,fg,20);
     d1=(char)(second/10+48);
     d2=(char)(second%10+48);
     sec=sec+d1+d2;
-    DrawNumber(renderer,500,10,":",font,surface,texture,fg);
-    DrawNumber(renderer,520,10,sec,font,surface,texture,fg);
+    DrawText(renderer,500,10,":",font,surface,texture,fg,20);
+    DrawText(renderer,520,10,sec,font,surface,texture,fg,20);
 }
 void clearOldBox(int r,int c){
     if(c<8&&isBox[r][c+1]) isBox[r][c+1]=false;
@@ -186,23 +186,17 @@ void clearOldBox(int r,int c){
     if(r>0&&c<8&&isBox[r-1][c+1]) isBox[r-1][c+1]=false;
     if(r<8&&c<8&&isBox[r+1][c+1]) isBox[r+1][c+1]=false;
 }
+void Button(Box button, SDL_Renderer* renderer, string name, int fontsize, TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,SDL_Color fg, bool flag){
+    fg={0,0,0};
+    DrawText(renderer,button.x,button.y,name,font,surface,texture,fg,fontsize);
+    if(flag==false) SDL_SetRenderDrawColor(renderer,0,0,0,0);
+    else SDL_SetRenderDrawColor(renderer,0,0,255,0);
+    button.render(renderer);
+}
 int main(int argc, char* argv[])
 {
-    int **numboard=new int*[9];
-    for(int i=0;i<9;i++){
-        numboard[i]=new int[9];
-    }
-    numboard=initBoard();
-    for(int i=0;i<9;i++){
-        for(int j=0;j<9;j++){
-            checker[i][j]=numboard[i][j];
-            if(checker[i][j]==0) canFill[i][j]=true;
-        }
-    }
-    for(int i=0;i<9;i++){
-        delete []numboard[i];
-    }
-    delete []numboard;
+    gettable(checker,false);
+    gettable(verdict,true);
     TTF_Font *font=NULL;
     SDL_Surface *surface=NULL;
     SDL_Texture *texture=NULL;
@@ -212,26 +206,57 @@ int main(int argc, char* argv[])
     Grid grid;
     grid.x=40;
     grid.y=100;
-    Box box;
+    Box box,pause,hint,kiemtra;
     box.x=40;
     box.y=100;
+    box.SizeX=box.SizeY=40;
+    pause.x=10;
+    pause.y=10;
+    pause.SizeX=30;
+    pause.SizeY=30;
+    hint.x=480;
+    hint.y=200;
+    hint.SizeX=80;
+    hint.SizeY=40;
+    kiemtra.x=480;
+    kiemtra.y=250;
+    kiemtra.SizeX=80;
+    kiemtra.SizeY=40;
     SDL_Event e;
+    SDL_Color fg={0,0,0};
+    Uint32 secondpassed=0,realTime=0; bool pflag=false,hflag=false, cflag=false, canWin=true;
+    int availhints=3;
     while(!stop){
+        if(!cflag&&!pflag){
             SDL_SetRenderDrawColor(renderer,255,255,255,255);
             SDL_RenderClear(renderer);
-            int r=(box.y-grid.y)/box.Size;
-            int c=(box.x-grid.x)/box.Size;
+            int r=(box.y-grid.y)/box.SizeX;
+            int c=(box.x-grid.x)/box.SizeY;
             isBox[r][c]=true;
+            if(hflag==true){
+                checker[r][c]=verdict[r][c];
+                availhints--;
+                Hinted[r][c]=true;
+                hflag=false;
+            }
             grid.render(renderer,font,surface,texture,checker);
-            box.render(renderer,font,surface,texture,checker);
-            SDL_Color fg={0,0,0};
-            Uint32 timer=totaltime-SDL_GetTicks()/1000;
+            SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0);
+            box.render(renderer);
+            Uint32 timer;
+                if(SDL_GetTicks()/1000>realTime){
+                    realTime=SDL_GetTicks()/1000;
+                    secondpassed++;
+                }
+                timer=totaltime-secondpassed;
             Clock(renderer,font,surface,texture,fg,timer);
+            Button(pause,renderer,"||",10,font,surface,texture,fg,pflag);
+            Button(hint,renderer,"Hint",20,font,surface,texture,fg,hflag);
+            Button(kiemtra,renderer,"Check",20,font,surface,texture,fg,cflag);
             if(timer==0){
                 stop=true;
             }
             SDL_RenderPresent(renderer);
-            SDL_Delay(500);
+            SDL_Delay(100);
             while(SDL_PollEvent(&e)!=0){
                 if(e.type==SDL_QUIT){
                     stop=true;
@@ -244,35 +269,33 @@ int main(int argc, char* argv[])
                         break;
                     case SDLK_LEFT:
                         {box.moveLeft(grid.x);
-                        r=(box.y-grid.y)/box.Size;
-                        c=(box.x-grid.x)/box.Size;
+                        r=(box.y-grid.y)/box.SizeX;
+                        c=(box.x-grid.x)/box.SizeY;
                         clearOldBox(r,c);}
                         break;
                     case SDLK_RIGHT:
                         {box.moveRight(grid.x+8*40);
-                        r=(box.y-grid.y)/box.Size;
-                        c=(box.x-grid.x)/box.Size;
+                        r=(box.y-grid.y)/box.SizeX;
+                        c=(box.x-grid.x)/box.SizeY;
                         clearOldBox(r,c);}
                         break;
                     case SDLK_DOWN:
                         {box.moveDown(grid.y+8*40);
-                        r=(box.y-grid.y)/box.Size;
-                        c=(box.x-grid.x)/box.Size;
+                        r=(box.y-grid.y)/box.SizeX;
+                        c=(box.x-grid.x)/box.SizeY;
                         clearOldBox(r,c);}
                         break;
                     case SDLK_UP:
                         {box.moveUp(grid.y);
-                        r=(box.y-grid.y)/box.Size;
-                        c=(box.x-grid.x)/box.Size;
+                        r=(box.y-grid.y)/box.SizeX;
+                        c=(box.x-grid.x)/box.SizeY;
                         clearOldBox(r,c);}
                         break;
                     case SDLK_1:
                         {if(canFill[r][c]) checker[r][c]=1;}
                         break;
                     case SDLK_2:
-                        {int r=(box.y-grid.y)/box.Size;
-                        int c=(box.x-grid.x)/box.Size;
-                        if(canFill[r][c]) checker[r][c]=2;}
+                        {if(canFill[r][c]) checker[r][c]=2;}
                         break;
                     case SDLK_3:
                         {if(canFill[r][c]) checker[r][c]=3;}
@@ -304,18 +327,80 @@ int main(int argc, char* argv[])
                 if(e.type==SDL_MOUSEBUTTONDOWN){
                     if(e.button.button==SDL_BUTTON_LEFT&&grid.inside(e.motion.x,e.motion.y)){
                         isBox[r][c]=false;
-                        box.x=grid.x+((e.motion.x-grid.x)/box.Size)*box.Size;
-                        box.y=grid.y+((e.motion.y-grid.y)/box.Size)*box.Size;
+                        box.x=grid.x+((e.motion.x-grid.x)/box.SizeX)*box.SizeX;
+                        box.y=grid.y+((e.motion.y-grid.y)/box.SizeY)*box.SizeY;
+                    }
+                    if(e.button.button==SDL_BUTTON_LEFT&&pause.inside(e.motion.x,e.motion.y)){
+                        if(pflag==false) pflag=true;
+                        else pflag=false;
+                    }
+                    if(e.button.button==SDL_BUTTON_LEFT&&hint.inside(e.motion.x,e.motion.y)){
+                        if(hflag==false&&canFill[r][c]&&!Hinted[r][c]) hflag=true;
+                    }
+                    if(e.button.button==SDL_BUTTON_LEFT&&kiemtra.inside(e.motion.x,e.motion.y)){
+                        for(int i=0;i<9;i++){
+                            for(int j=0;j<9;j++){
+                                if(checker[i][j]!=verdict[i][j]){
+                                    canWin=false;
+                                    break;
+                                }
+                            }
+                            if(canWin==false) break;
+                        }
+                        cflag=true;
                     }
                 }
             }
-        /*if(e.type==SDL_MOUSEBUTTONDOWN){
-            switch(e.button.buttonsym.sym){
-                case SDL_MOUSEBUTTONDOWN:
+        }
+        else if(!cflag&&pflag){
+            SDL_SetRenderDrawColor(renderer,255,255,255,255);
+            SDL_RenderClear(renderer);
+            DrawText(renderer,200,200,"Press left mouse to continue!",font,surface,texture,fg,30);
+            if(SDL_GetTicks()/1000>realTime){
+                realTime=SDL_GetTicks()/1000;
+            }SDL_RenderPresent(renderer);
+            SDL_Delay(500);
+            while(SDL_PollEvent(&e)!=0){
+                if(e.type==SDL_QUIT){
+                    stop=true;
+                    break;
+                }
+                if(e.type==SDL_MOUSEBUTTONDOWN){
+                    if(e.button.button==SDL_BUTTON_LEFT){
+                        pflag=false;
+                        break;
+                    }
+                }
             }
-        }*/
+        }
+        else if(cflag){
+            if(canWin){
+                SDL_SetRenderDrawColor(renderer,255,255,255,255);
+                SDL_RenderClear(renderer);
+                DrawText(renderer,200,200,"Congratulations! You win!",font,surface,texture,fg,30);
+                SDL_RenderPresent(renderer);
+                SDL_Delay(500);
+                while(SDL_PollEvent(&e)!=0){
+                    if(e.type==SDL_QUIT){
+                        stop=true;
+                        break;
+                    }
+                }
+            }else{
+                SDL_SetRenderDrawColor(renderer,255,255,255,255);
+                SDL_RenderClear(renderer);
+                DrawText(renderer,250,200,"Haha loser!",font,surface,texture,fg,30);
+                SDL_RenderPresent(renderer);
+                SDL_Delay(500);
+                while(SDL_PollEvent(&e)!=0){
+                    if(e.type==SDL_QUIT){
+                        stop=true;
+                        break;
+                    }
+                }
+            }
+        }
     }
-    //waitUntilKeyPressed();
     TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -323,5 +408,4 @@ int main(int argc, char* argv[])
     SDL_DestroyTexture(texture);
     atexit(cleanup);
     return 0;
-    //waitUntilKeyPressed();
 }
