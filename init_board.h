@@ -12,4 +12,5 @@ void puzzleValidation(int a[][9],int x,int y);
 bool isValid(int a[][9]);
 void createPuzzle();
 int **initBoard();
+int **answer();
 #endif
