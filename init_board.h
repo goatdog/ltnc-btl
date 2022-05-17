@@ -13,4 +13,5 @@ bool isValid(int a[][9]);
 void createPuzzle();
 int **initBoard();
 int **answer();
+void gettable(int a[][9], bool b);
 #endif

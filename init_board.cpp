@@ -167,3 +167,20 @@ int **answer(){
     }
     return p;
 }
+void gettable(int a[][9], bool b){
+    int **numboard=new int*[9];
+    for(int i=0;i<9;i++){
+        numboard[i]=new int[9];
+    }
+    if(b==false) numboard=initBoard();
+    else numboard=answer();
+    for(int i=0;i<9;i++){
+        for(int j=0;j<9;j++){
+            a[i][j]=numboard[i][j];
+        }
+    }
+    for(int i=0;i<9;i++){
+        delete []numboard[i];
+    }
+    delete []numboard;
+}

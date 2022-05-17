@@ -1,16 +1,17 @@
 # depslib dependency file v1.0
-1652010398 source:c:\users\dell\onedrive\documents\sudoku\init_board.cpp
+1652779659 source:c:\users\dell\onedrive\documents\sudoku\init_board.cpp
 	<bits/stdc++.h>
 	"init_board.h"
 
 1651397509 source:c:\users\dell\onedrive\documents\sudoku\main.cpp
 
-1652011776 source:c:\users\dell\onedrive\documents\sudoku\game_display.cpp
+1652800922 source:c:\users\dell\onedrive\documents\sudoku\game_display.cpp
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
-	<cstring>
+	<SDL_image.h>
 	"init_board.h"
+	"SDL_Utils.h"
 
 1641849092 c:\users\dell\sdl2-2.0.20\x86_64-w64-mingw32\include\sdl2\sdl.h
 	"SDL_main.h"
@@ -395,6 +396,28 @@
 	"begin_code.h"
 	"close_code.h"
 
-1651998551 c:\users\dell\onedrive\documents\sudoku\init_board.h
+1652779539 c:\users\dell\onedrive\documents\sudoku\init_board.h
 	<bits/stdc++.h>
+
+1652793223 c:\users\dell\onedrive\documents\sudoku\sdl_utils.h
+	<bits/stdc++.h>
+	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	"init_board.h"
+	"SDL_Utils.h"
+
+1652799200 source:c:\users\dell\onedrive\documents\sudoku\sdl_utils.cpp
+	<bits/stdc++.h>
+	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	"init_board.h"
+	"SDL_Utils.h"
+
+1561870398 c:\users\dell\sdl2_image-2.0.5\x86_64-w64-mingw32\include\sdl2\sdl_image.h
+	"SDL.h"
+	"SDL_version.h"
+	"begin_code.h"
+	"close_code.h"
 
