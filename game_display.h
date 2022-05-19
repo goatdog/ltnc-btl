@@ -14,15 +14,11 @@ extern string number[];
 extern string hintbutton[];
 extern int checker[9][9],verdict[9][9];
 extern bool canFill[9][9],isBox[9][9],Hinted[9][9];
-extern bool stop;
 extern const int totaltime;
-extern SDL_Window* window;
-extern SDL_Renderer* renderer;
-extern SDL_Surface* gImage;
-extern SDL_Rect src,des;
+/*extern SDL_Rect src,des;
 extern SDL_Surface *surface;
 extern TTF_Font *font;
-extern SDL_Texture* texture;
+extern SDL_Texture* texture;*/
 void DrawText(SDL_Renderer* renderer,int X,int Y,string num,TTF_Font *font,SDL_Surface *surface,SDL_Texture *texture,SDL_Color fg, int fontsize);
 class Grid{
     private:
@@ -44,6 +40,7 @@ class Box{
     int y;
     int SizeX;
     int SizeY;
+    Box(int _x,int _y,int _SizeX,int _SizeY);
     void render(SDL_Renderer* renderer);
     void moveLeft(int x1);
     void moveRight(int x2);

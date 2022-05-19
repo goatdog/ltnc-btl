@@ -141,6 +141,10 @@ void createPuzzle(){
 }
 int **initBoard(){
     srand(time(0));
+    memset(a,0,sizeof(a));
+    memset(board,0,sizeof(board));
+    memset(realBoard,0,sizeof(realBoard));
+    pick=0;
     initSeed();
     createPuzzle();
     //cout<<endl;

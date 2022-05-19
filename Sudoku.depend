@@ -1,23 +1,25 @@
 # depslib dependency file v1.0
-1652779659 source:c:\users\dell\onedrive\documents\sudoku\init_board.cpp
+1652956449 source:c:\users\dell\onedrive\documents\sudoku\init_board.cpp
 	<bits/stdc++.h>
 	"init_board.h"
 
-1652890451 source:c:\users\dell\onedrive\documents\sudoku\main.cpp
+1652975490 source:c:\users\dell\onedrive\documents\sudoku\main.cpp
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	"init_board.h"
 	"SDL_Utils.h"
 	"LTexture.h"
 	"game_display.h"
 
-1652885321 source:c:\users\dell\onedrive\documents\sudoku\game_display.cpp
+1652977092 source:c:\users\dell\onedrive\documents\sudoku\game_display.cpp
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	"init_board.h"
 	"SDL_Utils.h"
 	"LTexture.h"
@@ -409,20 +411,22 @@
 1652779539 c:\users\dell\onedrive\documents\sudoku\init_board.h
 	<bits/stdc++.h>
 
-1652865490 c:\users\dell\onedrive\documents\sudoku\sdl_utils.h
+1652972543 c:\users\dell\onedrive\documents\sudoku\sdl_utils.h
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	"init_board.h"
 	"SDL_Utils.h"
 	"LTexture.h"
 
-1652884342 source:c:\users\dell\onedrive\documents\sudoku\sdl_utils.cpp
+1652972543 source:c:\users\dell\onedrive\documents\sudoku\sdl_utils.cpp
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	"init_board.h"
 	"SDL_Utils.h"
 	"LTexture.h"
@@ -433,29 +437,32 @@
 	"begin_code.h"
 	"close_code.h"
 
-1652865398 source:c:\users\dell\onedrive\documents\sudoku\ltexture.cpp
+1652977093 source:c:\users\dell\onedrive\documents\sudoku\ltexture.cpp
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	"init_board.h"
 	"SDL_Utils.h"
 	"Ltexture.h"
 
-1652865490 c:\users\dell\onedrive\documents\sudoku\ltexture.h
+1652973506 c:\users\dell\onedrive\documents\sudoku\ltexture.h
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	"init_board.h"
 	"SDL_Utils.h"
 	"Ltexture.h"
 
-1652885283 c:\users\dell\onedrive\documents\sudoku\game_display.h
+1652977093 c:\users\dell\onedrive\documents\sudoku\game_display.h
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
+	<SDL_mixer.h>
 	"init_board.h"
 	"SDL_Utils.h"
 	"LTexture.h"

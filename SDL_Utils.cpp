@@ -18,12 +18,36 @@ void logSDLError(std::ostream& os, const std::string &msg, bool fatal)
         exit(1);
     }
 }
+void logTTFError(std::ostream& os, const std::string &msg, bool fatal)
+{
+    os << msg << " Error: " << TTF_GetError() << std::endl;
+    if (fatal) {
+        TTF_Quit();
+        exit(1);
+    }
+}
+void logIMGError(std::ostream& os, const std::string &msg, bool fatal)
+{
+    os << msg << " Error: " << IMG_GetError() << std::endl;
+    if (fatal) {
+        IMG_Quit();
+        exit(1);
+    }
+}
+void logMIXError(std::ostream& os, const std::string &msg, bool fatal)
+{
+    os << msg << " Error: " << Mix_GetError() << std::endl;
+    if (fatal) {
+        Mix_Quit();
+        exit(1);
+    }
+}
 void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, SDL_Surface* &gImage)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         logSDLError(std::cout, "SDL_Init", true);
     if (TTF_Init()< 0)
-        logSDLError(std::cout, "TTF_Init", true);
+        logTTFError(std::cout, "TTF_Init", true);
     window = SDL_CreateWindow(WINDOW_TITLE.c_str(), SDL_WINDOWPOS_CENTERED,
        SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     //window = SDL_CreateWindow(WINDOW_TITLE.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -41,20 +65,15 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, SDL_Surface* &gImage)
     int imgFlags = IMG_INIT_PNG;
     if( !( IMG_Init( imgFlags ) & imgFlags ) )
     {
-        logSDLError(std::cout,"IMG_Init",true);
+        logIMGError(std::cout,"IMG_Init",true);
     }
     else
     {
         //Get window surface
         gImage = SDL_GetWindowSurface( window );
     }
-}
-void cleanup(SDL_Window* &window, SDL_Renderer* &renderer, SDL_Surface* &gImage)
-{
-    SDL_DestroyWindow(window);
-    SDL_DestroyRenderer(renderer);
-    SDL_FreeSurface(gImage);
-	TTF_Quit();
-	IMG_Quit();
-	SDL_Quit();
+    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+    {
+        logMIXError(std::cout,"MIX_Init",true);
+    }
 }

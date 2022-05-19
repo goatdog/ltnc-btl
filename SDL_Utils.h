@@ -10,6 +10,8 @@
 #include "LTexture.h"
 using namespace std;
 void logSDLError(std::ostream& os, const std::string &msg, bool fatal);
+void logTTFError(std::ostream& os, const std::string &msg, bool fatal);
+void logIMGError(std::ostream& os, const std::string &msg, bool fatal);
+void logMIXError(std::ostream& os, const std::string &msg, bool fatal);
 void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, SDL_Surface* &gImage);
-void cleanup(SDL_Window* &window, SDL_Renderer* &renderer, SDL_Surface* &gImage);
 #endif
