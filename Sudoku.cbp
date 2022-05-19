@@ -41,9 +41,12 @@
 			<Add directory="../../../SDL2_image-2.0.5/x86_64-w64-mingw32/lib" />
 			<Add directory="../../../SDL2_ttf-2.0.18/x86_64-w64-mingw32/lib" />
 		</Linker>
+		<Unit filename="LTexture.cpp" />
+		<Unit filename="LTexture.h" />
 		<Unit filename="SDL_Utils.cpp" />
 		<Unit filename="SDL_Utils.h" />
 		<Unit filename="game_display.cpp" />
+		<Unit filename="game_display.h" />
 		<Unit filename="init_board.cpp" />
 		<Unit filename="init_board.h" />
 		<Unit filename="main.cpp" />

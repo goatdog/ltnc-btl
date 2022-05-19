@@ -2,8 +2,10 @@
 #include<SDL.h>
 #include<SDL_ttf.h>
 #include<SDL_image.h>
+#include<SDL_mixer.h>
 #include "init_board.h"
 #include "SDL_Utils.h"
+#include "LTexture.h"
 using namespace std;
 const int SCREEN_WIDTH=556;
 const int SCREEN_HEIGHT=600;
