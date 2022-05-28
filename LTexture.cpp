@@ -12,9 +12,9 @@ extern SDL_Rect src,des;
 extern Mix_Chunk* gMove;
 extern Mix_Chunk* gClick;
 extern Mix_Chunk* gCount;
-extern Mix_Chunk* gTick;
 extern Mix_Chunk* gWin;
 extern Mix_Chunk* gLose;
+extern Mix_Chunk* gTick;
 extern Mix_Music* gMusic;
 SDL_Texture* loadTexture( string path )
 {

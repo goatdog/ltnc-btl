@@ -16,13 +16,14 @@ SDL_Surface *surface=NULL;
 TTF_Font *font=NULL;
 SDL_Texture* texture=NULL;
 Mix_Music* gMusic=NULL;
+Mix_Chunk* gTick=NULL;
 Mix_Chunk* gMove=NULL;
 Mix_Chunk* gClick=NULL;
 Mix_Chunk* gCount=NULL;
-Mix_Chunk* gTick=NULL;
 Mix_Chunk* gWin=NULL;
 Mix_Chunk* gLose=NULL;
 bool stop=false;
+const int totaltime=600;
 int main(int argc, char* argv[]){
     initSDL(window, renderer, gImage);
     loadMedia();
@@ -50,6 +51,11 @@ int main(int argc, char* argv[]){
         SDL_SetRenderDrawColor(renderer,255,255,255,255);
         SDL_RenderClear(renderer);
         if(screenlabel==0){
+            if(gTick!=NULL) Mix_FreeChunk(gTick);
+            gTick=Mix_LoadWAV("tick-tock.wav");
+            if(gTick==NULL){
+                printf("Failed to load ticktock sound effect! SDL_mixer Error: %s\n",Mix_GetError());
+            }
             if(mflag==true) Mix_PlayMusic(gMusic,-1);
             memset(checker,0,sizeof(checker));
             memset(verdict,0,sizeof(verdict));
@@ -166,7 +172,9 @@ int main(int argc, char* argv[]){
                 }
                 if(e.type==SDL_KEYDOWN){
                 switch(e.key.keysym.sym){
-                    case SDLK_ESCAPE: stop=true;
+                    case SDLK_ESCAPE:
+                        {Mix_PlayChannel(-1,gMove,0);
+                        pflag=true;}
                         break;
                     case SDLK_LEFT:
                         {Mix_PlayChannel(-1,gMove,0);
@@ -293,6 +301,13 @@ int main(int argc, char* argv[]){
                     stop=true;
                     break;
                 }
+                if(e.type==SDL_KEYDOWN){
+                    if(e.key.keysym.sym==SDLK_ESCAPE){
+                        Mix_PlayChannel(-1,gMove,0);
+                        pflag=false;
+                        break;
+                    }
+                }
                 if(e.type==SDL_MOUSEBUTTONDOWN){
                     if(e.button.button==SDL_BUTTON_LEFT&&backbutton.inside(e.motion.x,e.motion.y)){
                         Mix_PlayChannel(-1,gClick,0);
@@ -320,6 +335,7 @@ int main(int argc, char* argv[]){
         }
         else if(cflag){
             Mix_HaltMusic();
+            Mix_FreeChunk(gTick);
             if(canWin){
                 if(sfx==true){
                     Mix_PlayChannel(-1,gWin,0);

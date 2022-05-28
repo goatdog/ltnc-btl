@@ -13,15 +13,14 @@ string hintbutton[]={"hint-button-0.png","hint-button-1.png","hint-button-2.png"
 int checker[9][9],verdict[9][9];
 bool canFill[9][9],isBox[9][9],Hinted[9][9];
 extern bool stop;
-const int totaltime=600;
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;
 extern SDL_Surface* gImage;
 extern Mix_Music* gMusic;
+extern Mix_Chunk* gTick;
 extern Mix_Chunk* gMove;
 extern Mix_Chunk* gClick;
 extern Mix_Chunk* gCount;
-extern Mix_Chunk* gTick;
 extern Mix_Chunk* gWin;
 extern Mix_Chunk* gLose;
 /*extern SDL_Rect src,des;
